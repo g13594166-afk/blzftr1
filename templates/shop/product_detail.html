@@ -1,0 +1,432 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% csrf_token %}
+
+{% block title %}{{ product.name }} - Boutique Gaming BLIZZ{% endblock %}
+
+{% block content %}
+<style>
+    .product-container {
+        padding: 2rem;
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+
+    .product-main {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 3rem;
+        margin-bottom: 3rem;
+    }
+
+    .product-images {
+        background: linear-gradient(145deg, rgba(15, 23, 41, 0.9), rgba(108, 92, 231, 0.1));
+        border: 1px solid var(--primary-color);
+        border-radius: 15px;
+        padding: 2rem;
+    }
+
+    .main-image {
+        width: 100%;
+        height: 400px;
+        background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 1rem;
+        overflow: hidden;
+    }
+
+    .main-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .main-image i {
+        font-size: 5rem;
+        color: white;
+        opacity: 0.7;
+    }
+
+    .product-info {
+        background: linear-gradient(145deg, rgba(15, 23, 41, 0.9), rgba(108, 92, 231, 0.1));
+        border: 1px solid var(--primary-color);
+        border-radius: 15px;
+        padding: 2rem;
+    }
+
+    .product-title {
+        font-family: 'Halo', sans-serif;
+        color: var(--primary-color);
+        font-size: 2.5rem;
+        text-shadow: 0 0 20px var(--primary-color);
+        margin-bottom: 1rem;
+        text-align: center;
+    }
+
+    .product-price {
+        font-family: 'RussoOne', sans-serif;
+        color: var(--secondary-color);
+        font-size: 2.5rem;
+        text-shadow: 0 0 20px var(--secondary-color);
+        margin-bottom: 1.5rem;
+        text-align: center;
+    }
+
+    .add-to-cart-btn {
+        background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+        color: white;
+        border: none;
+        padding: 1rem 2rem;
+        border-radius: 25px;
+        font-family: 'RussoOne', sans-serif;
+        font-size: 1.1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        width: 100%;
+        margin-bottom: 1rem;
+    }
+
+    .add-to-cart-btn:hover {
+        transform: scale(1.05);
+        box-shadow: 0 0 30px var(--primary-color);
+    }
+
+    @media (max-width: 768px) {
+        .product-main {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<div class="product-container">
+    <h1 class="product-title">{{ product.name }}</h1>
+
+    <div class="product-main">
+        <!-- Product Images -->
+        <div class="product-images">
+            <div class="main-image">
+                {% if product.featured_image %}
+                <img id="mainImage" src="{{ product.featured_image.url }}" alt="{{ product.name }}">
+                {% else %}
+                <i class="fas fa-gamepad"></i>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Product Details -->
+        <div class="product-info">
+            <div class="product-price">{{ product.price }} FCFA</div>
+
+            {% if product.short_description %}
+            <div style="color: rgba(255, 255, 255, 0.8); margin-bottom: 2rem; line-height: 1.6;">
+                {{ product.short_description }}
+            </div>
+            {% endif %}
+
+            <!-- Quantity -->
+            <div style="margin-bottom: 2rem;">
+                <label style="color: white; font-family: 'RussoOne', sans-serif; margin-bottom: 0.75rem; display: block;">Quantité</label>
+                <div style="display: flex; align-items: center; gap: 0.5rem; max-width: 150px;">
+                    <button onclick="decreaseQuantity()" style="background: rgba(255, 255, 255, 0.1); border: 1px solid var(--primary-color); color: white; width: 40px; height: 40px; border-radius: 50%; cursor: pointer;">-</button>
+                    <input type="number" id="quantity" value="1" min="1" max="10" style="background: rgba(15, 23, 41, 0.8); border: 1px solid var(--primary-color); color: white; text-align: center; width: 60px; height: 40px; border-radius: 8px;">
+                    <button onclick="increaseQuantity()" style="background: rgba(255, 255, 255, 0.1); border: 1px solid var(--primary-color); color: white; width: 40px; height: 40px; border-radius: 50%; cursor: pointer;">+</button>
+                </div>
+            </div>
+
+            <!-- Add to Cart Button -->
+            <button id="addToCartBtn" class="add-to-cart-btn">
+                <i class="fas fa-cart-plus"></i>
+                AJOUTER AU PANIER
+            </button>
+            
+            <!-- Buy Now Button -->
+            <button id="buyNowBtn" class="buy-now-btn" style="background: linear-gradient(45deg, #fd79a8, #e84393); color: white; border: none; padding: 1rem 2rem; border-radius: 20px; font-family: 'RussoOne', sans-serif; font-size: 1.1rem; cursor: pointer; width: 100%; margin-top: 1rem; transition: all 0.3s ease; text-transform: uppercase; letter-spacing: 1px;">
+                <i class="fas fa-bolt"></i>
+                ACHETER MAINTENANT
+            </button>
+            
+            <a href="{% url 'cart_view' %}" style="background: rgba(255, 255, 255, 0.1); border: 1px solid white; color: white; padding: 0.75rem 1.5rem; border-radius: 20px; text-decoration: none; display: block; text-align: center; font-family: 'RussoOne', sans-serif; margin-top: 1rem;">
+                <i class="fas fa-shopping-cart"></i>
+                Voir le panier
+            </a>
+        </div>
+    </div>
+
+    <!-- Product Description -->
+    {% if product.description %}
+    <div class="row mt-5">
+        <div class="col-12">
+            <div class="card shadow-lg border-0" style="background: rgba(255,255,255,0.1); backdrop-filter: blur(10px);">
+                <div class="card-header" style="background: rgba(108, 92, 231, 0.2); border: none;">
+                    <h4 class="text-white mb-0"><i class="fas fa-info-circle"></i> Description détaillée</h4>
+                </div>
+                <div class="card-body">
+                    <div class="text-white-50">{{ product.description|linebreaks }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Related Products -->
+    {% if related_products %}
+    <div class="row mt-5">
+        <div class="col-12">
+            <h3 class="text-white mb-4" style="font-family: 'Russo One', sans-serif;">
+                <i class="fas fa-heart"></i> Produits similaires
+            </h3>
+        </div>
+        {% for related_product in related_products %}
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="card h-100 shadow-lg border-0" style="background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); transition: all 0.3s ease;">
+                <a href="{% url 'shop_product_detail' related_product.slug %}" class="text-decoration-none">
+                    {% if related_product.featured_image %}
+                    <img src="{{ related_product.featured_image.url }}" class="card-img-top" style="height: 200px; object-fit: cover;">
+                    {% else %}
+                    <div class="card-img-top d-flex align-items-center justify-content-center" style="height: 200px; background: linear-gradient(45deg, #6c5ce7, #a29bfe);">
+                        <i class="fas fa-image fa-3x text-white"></i>
+                    </div>
+                    {% endif %}
+                </a>
+                <div class="card-body d-flex flex-column">
+                    <h6 class="card-title text-white mb-2">{{ related_product.name }}</h6>
+                    <p class="card-text text-white-50 small flex-grow-1">{{ related_product.short_description|truncatewords:10 }}</p>
+                    <div class="d-flex justify-content-between align-items-center mt-auto">
+                        <span class="h6 text-warning mb-0">{{ related_product.price }} FCFA</span>
+                        <a href="{% url 'shop_product_detail' related_product.slug %}" class="btn btn-sm" style="background: linear-gradient(45deg, #6c5ce7, #a29bfe); color: white; border: none;">
+                            Voir
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+</div>
+
+<style>
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.3) !important;
+}
+
+.btn:hover {
+    transform: scale(1.05);
+    transition: all 0.3s ease;
+}
+
+.thumbnail-img:hover {
+    opacity: 0.7;
+    transform: scale(1.05);
+}
+
+.variant-radio:checked + label {
+    color: #ffc107 !important;
+    font-weight: bold;
+}
+
+.buy-now-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(253, 121, 168, 0.4);
+}
+</style>
+
+<script>
+let basePrice = parseFloat("{{ product.price|floatformat:2 }}");
+
+function changeMainImage(imageUrl) {
+    document.getElementById('mainImage').src = imageUrl;
+}
+
+function increaseQuantity() {
+    const quantityInput = document.getElementById('quantity');
+    const currentValue = parseInt(quantityInput.value);
+    if (currentValue < 10) {
+        quantityInput.value = currentValue + 1;
+    }
+}
+
+function decreaseQuantity() {
+    const quantityInput = document.getElementById('quantity');
+    const currentValue = parseInt(quantityInput.value);
+    if (currentValue > 1) {
+        quantityInput.value = currentValue - 1;
+    }
+}
+
+// Handle variant selection and price update
+document.addEventListener('DOMContentLoaded', function() {
+    const variantRadios = document.querySelectorAll('.variant-radio');
+    const priceElement = document.querySelector('.text-warning');
+    
+    variantRadios.forEach(radio => {
+        radio.addEventListener('change', function() {
+            const priceAdjustment = parseFloat(this.getAttribute('data-price')) || 0;
+            const newPrice = basePrice + priceAdjustment;
+            priceElement.textContent = newPrice + ' FCFA';
+        });
+    });
+
+    // Add to cart functionality
+    document.getElementById('addToCartBtn').addEventListener('click', function() {
+        const quantity = document.getElementById('quantity').value;
+        const selectedVariant = document.querySelector('.variant-radio:checked');
+        const variantId = selectedVariant ? selectedVariant.value : '';
+        
+        // Add loading state
+        const originalContent = this.innerHTML;
+        this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> AJOUT EN COURS...';
+        this.disabled = true;
+        
+        // Create a simple form and submit it
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '{% url "add_to_cart" %}';
+        form.style.display = 'none';
+        
+        // Add CSRF token
+        const csrfInput = document.createElement('input');
+        csrfInput.type = 'hidden';
+        csrfInput.name = 'csrfmiddlewaretoken';
+        csrfInput.value = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        form.appendChild(csrfInput);
+        
+        // Add product data
+        const productInput = document.createElement('input');
+        productInput.type = 'hidden';
+        productInput.name = 'product_id';
+        productInput.value = '{{ product.id }}';
+        form.appendChild(productInput);
+        
+        const quantityInput = document.createElement('input');
+        quantityInput.type = 'hidden';
+        quantityInput.name = 'quantity';
+        quantityInput.value = quantity;
+        form.appendChild(quantityInput);
+        
+        if (variantId) {
+            const variantInput = document.createElement('input');
+            variantInput.type = 'hidden';
+            variantInput.name = 'variant_id';
+            variantInput.value = variantId;
+            form.appendChild(variantInput);
+        }
+        
+        document.body.appendChild(form);
+        
+        // Use XMLHttpRequest for better error handling
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', '{% url "add_to_cart" %}', true);
+        xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+        
+        const formData = new FormData(form);
+        
+        xhr.onload = function() {
+            document.body.removeChild(form);
+            
+            if (xhr.status === 200) {
+                try {
+                    const data = JSON.parse(xhr.responseText);
+                    if (data.success) {
+                        // Show success message
+                        this.innerHTML = '<i class="fas fa-check"></i> AJOUTÉ AU PANIER !';
+                        this.style.background = 'linear-gradient(45deg, #28a745, #20c997)';
+                        
+                        // Reset after 3 seconds
+                        setTimeout(() => {
+                            this.innerHTML = originalContent;
+                            this.style.background = 'linear-gradient(45deg, #ff6b6b, #ee5a52)';
+                            this.disabled = false;
+                        }, 3000);
+                    } else {
+                        alert('Erreur: ' + data.message);
+                        this.innerHTML = originalContent;
+                        this.disabled = false;
+                    }
+                } catch (e) {
+                    alert('Erreur de réponse: ' + e.message);
+                    this.innerHTML = originalContent;
+                    this.disabled = false;
+                }
+            } else {
+                alert('Erreur HTTP: ' + xhr.status);
+                this.innerHTML = originalContent;
+                this.disabled = false;
+            }
+        }.bind(this);
+        
+        xhr.onerror = function() {
+            document.body.removeChild(form);
+            alert('Erreur de connexion');
+            this.innerHTML = originalContent;
+            this.disabled = false;
+        }.bind(this);
+        
+        xhr.send(formData);
+    });
+
+    // Buy Now functionality
+    document.getElementById('buyNowBtn').addEventListener('click', function() {
+        const quantity = document.getElementById('quantity').value;
+        const selectedVariant = document.querySelector('.variant-radio:checked');
+        const variantId = selectedVariant ? selectedVariant.value : '';
+        
+        // Add loading state
+        const originalContent = this.innerHTML;
+        this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> TRAITEMENT...';
+        this.disabled = true;
+        
+        // Use XMLHttpRequest for better error handling
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', '{% url "add_to_cart" %}', true);
+        xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+        
+        const formData = new FormData();
+        formData.append('product_id', '{{ product.id }}');
+        formData.append('quantity', quantity);
+        if (variantId) {
+            formData.append('variant_id', variantId);
+        }
+        formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+        
+        xhr.onload = function() {
+            if (xhr.status === 200) {
+                try {
+                    const data = JSON.parse(xhr.responseText);
+                    if (data.success) {
+                        // Redirect to checkout
+                        window.location.href = '{% url "checkout" %}';
+                    } else {
+                        alert('Erreur: ' + data.message);
+                        this.innerHTML = originalContent;
+                        this.disabled = false;
+                    }
+                } catch (e) {
+                    alert('Erreur de réponse: ' + e.message);
+                    this.innerHTML = originalContent;
+                    this.disabled = false;
+                }
+            } else {
+                alert('Erreur HTTP: ' + xhr.status);
+                this.innerHTML = originalContent;
+                this.disabled = false;
+            }
+        }.bind(this);
+        
+        xhr.onerror = function() {
+            alert('Erreur de connexion');
+            this.innerHTML = originalContent;
+            this.disabled = false;
+        }.bind(this);
+        
+        xhr.send(formData);
+    });
+});
+</script>
+{% endblock %}
